@@ -1,4 +1,5 @@
-import { listRequests } from "./datastore.js";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Stat({ label, value, accent }) {
   return (
@@ -18,8 +19,11 @@ function Stat({ label, value, accent }) {
 }
 
 function AdvocateHome() {
-  const requests = listRequests();
-  const newCount = requests.filter((r) => r.status === "new").length;
+  const [requests, setRequests] = useState([]);
+  useEffect(() => {
+    portalApi.advocate.requests().then((rows) => setRequests(rows || []));
+  }, []);
+  const newCount = requests.filter((r) => r.status === "open").length;
   return (
     <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
       <div>
@@ -64,8 +68,8 @@ function AdvocateHome() {
                       borderRadius: 8,
                       fontSize: 13,
                       fontWeight: 500,
-                      background: r.status === "new" ? "var(--cream-dark)" : "var(--cream)",
-                      color: r.status === "new" ? "var(--accent)" : "var(--text-muted)",
+                      background: r.status === "open" ? "var(--cream-dark)" : "var(--cream)",
+                      color: r.status === "open" ? "var(--accent)" : "var(--text-muted)",
                     }}
                   >
                     {r.status}

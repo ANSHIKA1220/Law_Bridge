@@ -1,5 +1,4 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { seedIfEmpty } from "./datastore.js";
 
 function SidebarLink({ to, label }) {
   return (
@@ -25,7 +24,6 @@ function SidebarLink({ to, label }) {
 }
 
 function CitizenLayout() {
-  seedIfEmpty();
   const navigate = useNavigate();
   return (
     <div

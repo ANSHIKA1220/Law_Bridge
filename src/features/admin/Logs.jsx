@@ -1,15 +1,19 @@
-import { listLogs, addLog } from "./datastore.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Logs() {
-  const [items, setItems] = useState(listLogs());
+  const [items, setItems] = useState([]);
   const [type, setType] = useState("api");
   const [message, setMessage] = useState("");
 
-  function push() {
+  useEffect(() => {
+    portalApi.admin.logs().then((rows) => setItems(rows || []));
+  }, []);
+
+  async function push() {
     if (!message.trim()) return;
-    addLog({ type, message });
-    setItems(listLogs());
+    await portalApi.admin.addLog({ type, message });
+    setItems(await portalApi.admin.logs());
     setMessage("");
   }
 

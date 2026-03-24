@@ -5,8 +5,6 @@ import { getUser, signOut } from "../auth/auth.js";
 function NavBar() {
   const navigate = useNavigate();
   const [shadow, setShadow] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
   const user = getUser();
 
   useEffect(() => {
@@ -27,7 +25,6 @@ function NavBar() {
 
   function doSignOut() {
     signOut();
-    setOpen(false);
     navigate("/");
   }
 

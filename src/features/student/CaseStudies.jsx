@@ -1,10 +1,13 @@
-import { listCaseStudies } from "./datastore.js";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function CaseStudies() {
-  const all = listCaseStudies();
+  const [all, setAll] = useState([]);
   const [q, setQ] = useState("");
   const [area, setArea] = useState("");
+  useEffect(() => {
+    portalApi.student.caseStudies().then((rows) => setAll(rows || []));
+  }, []);
   const results = useMemo(() => {
     return all.filter(
       (c) =>

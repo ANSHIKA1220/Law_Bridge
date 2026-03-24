@@ -1,6 +1,4 @@
-import { addActivity, listActivities, listDocuments } from "./datastore.js";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 
 function Stat({ label, value }) {
   return (
@@ -20,9 +18,6 @@ function Stat({ label, value }) {
 }
 
 function CitizenHome() {
-  const [activities, setActivities] = useState(() => listActivities());
-  const [docs] = useState(() => listDocuments());
-
   return (
     <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
       <div>
@@ -36,8 +31,8 @@ function CitizenHome() {
         >
           <h2 style={{ margin: 0, fontSize: 28 }}>Welcome back</h2>
           <div style={{ display: "flex", gap: 12 }}>
-            <Stat label="Documents" value={docs.length} />
-            <Stat label="Open Tickets" value={0} />
+            <Stat label="Documents" value="-" />
+            <Stat label="Open Tickets" value="-" />
           </div>
         </div>
 
@@ -119,37 +114,11 @@ function CitizenHome() {
             }}
           >
             <h3 style={{ margin: 0 }}>Recent Activities</h3>
-            <button
-              className="btn secondary"
-              onClick={() => setActivities(addActivity("note", "Checked updates"))}
-              style={{ fontSize: 13, padding: "8px 14px" }}
-            >
-              Add Activity
-            </button>
           </div>
           <div style={{ marginTop: 14 }}>
-            {activities.length === 0 && (
-              <div style={{ color: "var(--text-muted)", padding: "12px 0" }}>
-                No activities yet
-              </div>
-            )}
-            {activities.map((a) => (
-              <div
-                key={a.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "10px 0",
-                  borderBottom: "1px solid var(--card-border)",
-                  fontSize: 14,
-                }}
-              >
-                <div>{a.title}</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                  {new Date(a.date).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
+            <div style={{ color: "var(--text-muted)", padding: "12px 0" }}>
+              Live activity feed will appear after backend activity endpoints are enabled.
+            </div>
           </div>
         </div>
       </div>

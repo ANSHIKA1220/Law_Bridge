@@ -1,4 +1,5 @@
-import { listLogs, listModels } from "./datastore.js";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Stat({ label, value, accent }) {
   return (
@@ -18,8 +19,17 @@ function Stat({ label, value, accent }) {
 }
 
 function AdminHome() {
-  const logs = listLogs();
-  const models = listModels();
+  const [logs, setLogs] = useState([]);
+  const [models, setModels] = useState([]);
+
+  useEffect(() => {
+    async function load() {
+      const [logRows, modelRows] = await Promise.all([portalApi.admin.logs(), portalApi.admin.models()]);
+      setLogs(logRows || []);
+      setModels(modelRows || []);
+    }
+    load();
+  }, []);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
       <div>

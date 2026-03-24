@@ -1,28 +1,48 @@
 import { useState } from "react";
-import { addActivity } from "./datastore.js";
-
-function answerFor(q) {
-  const lower = q.toLowerCase();
-  if (lower.includes("lease"))
-    return "Under the Transfer of Property Act, 1882, early termination depends on the clause. Check your notice period and any break clause. Courts weigh conduct and contractual terms.";
-  if (lower.includes("refund"))
-    return "Consumer Protection Act, 2019 allows refund claims for deficiency of service. Preserve invoices and communication. File a complaint with District Commission.";
-  return "Review relevant sections and precedents. Provide facts, jurisdiction, and timeline for precise guidance.";
-}
+import { apiRequest } from "../../api/client.js";
+import { getToken } from "../../auth/auth.js";
 
 function LegalQA() {
   const [messages, setMessages] = useState([
     { role: "assistant", text: "Ask your legal question. Include facts and desired outcome for the most relevant guidance." },
   ]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function send() {
+  async function send() {
     if (!input.trim()) return;
-    const userMsg = { role: "user", text: input };
-    const reply = { role: "assistant", text: answerFor(input) };
-    setMessages((m) => [...m, userMsg, reply]);
-    addActivity("qa", input);
+    setLoading(true);
+    const question = input;
     setInput("");
+    const userMsg = { role: "user", text: question };
+    setMessages((m) => [...m, userMsg]);
+    try {
+      const result = await apiRequest("/chat", {
+        method: "POST",
+        token: getToken(),
+        body: { message: question },
+      });
+
+      const suggestionsText = (result.suggestions || [])
+        .map((s) => `• ${s}`)
+        .join("\n");
+      const relatedText = (result.related_cases || [])
+        .map((c) => `• ${c.title} (score: ${Number(c.relevance_score).toFixed(2)})`)
+        .join("\n");
+
+      const assistantText = `${result.answer || ""}\n\n${
+        suggestionsText ? `Suggestions:\n${suggestionsText}\n\n` : ""
+      }${relatedText ? `Related cases:\n${relatedText}` : ""}`.trim();
+
+      setMessages((m) => [...m, { role: "assistant", text: assistantText }]);
+    } catch (err) {
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", text: err?.message || "Something went wrong contacting the server." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleKeyDown(e) {
@@ -84,8 +104,8 @@ function LegalQA() {
           placeholder="Type your legal question..."
           style={{ flex: 1 }}
         />
-        <button onClick={send} className="btn">
-          Send
+        <button onClick={send} className="btn" disabled={loading}>
+          {loading ? "Sending..." : "Send"}
         </button>
       </div>
     </div>

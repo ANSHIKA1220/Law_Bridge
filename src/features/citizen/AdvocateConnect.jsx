@@ -1,16 +1,32 @@
 import { useState } from "react";
-import { addTicket } from "./datastore.js";
+import { apiRequest } from "../../api/client.js";
+import { getToken } from "../../auth/auth.js";
 
 function AdvocateConnect() {
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("Contract");
   const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  function raise() {
+  async function raise() {
     if (!subject.trim()) return;
-    addTicket({ subject, category });
-    setStatus("Ticket raised. An advocate will respond soon.");
-    setSubject("");
+    setLoading(true);
+    setStatus(null);
+    const issue = `${category}: ${subject}`.trim();
+
+    try {
+      const res = await apiRequest("/ticket/create", {
+        method: "POST",
+        token: getToken(),
+        body: { issue },
+      });
+      setStatus(`Ticket #${res.id} raised. Status: ${res.status}.`);
+      setSubject("");
+    } catch (err) {
+      setStatus(err?.message || "Failed to create ticket.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -51,8 +67,8 @@ function AdvocateConnect() {
             <option>Criminal</option>
           </select>
         </div>
-        <button onClick={raise} className="btn" style={{ alignSelf: "flex-start" }}>
-          Raise Ticket
+        <button onClick={raise} className="btn" style={{ alignSelf: "flex-start" }} disabled={loading}>
+          {loading ? "Raising..." : "Raise Ticket"}
         </button>
       </div>
 

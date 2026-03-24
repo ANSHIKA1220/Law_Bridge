@@ -1,22 +1,31 @@
-import { listLaws, addLaw, listCases, addCase } from "./datastore.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Content() {
-  const [laws, setLaws] = useState(listLaws());
-  const [cases, setCases] = useState(listCases());
+  const [laws, setLaws] = useState([]);
+  const [cases, setCases] = useState([]);
   const [lawTitle, setLawTitle] = useState("");
   const [caseTitle, setCaseTitle] = useState("");
 
-  function addLawItem() {
+  useEffect(() => {
+    async function load() {
+      const [lawRows, caseRows] = await Promise.all([portalApi.admin.laws(), portalApi.admin.cases()]);
+      setLaws(lawRows || []);
+      setCases(caseRows || []);
+    }
+    load();
+  }, []);
+
+  async function addLawItem() {
     if (!lawTitle.trim()) return;
-    const l = addLaw(lawTitle);
+    const l = await portalApi.admin.addLaw(lawTitle);
     setLaws([l, ...laws]);
     setLawTitle("");
   }
 
-  function addCaseItem() {
+  async function addCaseItem() {
     if (!caseTitle.trim()) return;
-    const c = addCase(caseTitle);
+    const c = await portalApi.admin.addCase(caseTitle);
     setCases([c, ...cases]);
     setCaseTitle("");
   }

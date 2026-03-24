@@ -7,14 +7,25 @@ function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Citizen");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleCreate(e) {
+  async function handleCreate(e) {
     e.preventDefault();
-    const user = signUp({ name, email, role });
-    if (user.role === "Citizen") navigate("/dashboard/citizen");
-    else if (user.role === "Advocate") navigate("/dashboard/advocate");
-    else if (user.role === "Admin") navigate("/dashboard/admin");
-    else navigate("/dashboard/student");
+    setError(null);
+    setLoading(true);
+    try {
+      const user = await signUp({ name, email, password, role });
+      if (user.role === "Citizen") navigate("/dashboard/citizen");
+      else if (user.role === "Advocate") navigate("/dashboard/advocate");
+      else if (user.role === "Admin") navigate("/dashboard/admin");
+      else navigate("/dashboard/student");
+    } catch (err) {
+      setError(err?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -81,6 +92,8 @@ function Signup() {
             <label>Password</label>
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Create a password"
               style={{ marginTop: 6 }}
             />
@@ -107,10 +120,15 @@ function Signup() {
               marginTop: 4,
               justifyContent: "center",
             }}
+            disabled={loading}
           >
             Create Account
           </button>
         </form>
+
+        {error && (
+          <div style={{ marginTop: 16, color: "var(--error)", fontSize: 13 }}>{error}</div>
+        )}
 
         <p
           style={{

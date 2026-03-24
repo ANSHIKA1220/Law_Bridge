@@ -1,16 +1,25 @@
-import { getProfile, saveProfile } from "./datastore.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Profile() {
-  const current = getProfile();
-  const [name, setName] = useState(current.name);
-  const [expertise, setExpertise] = useState(current.expertise);
-  const [barId, setBarId] = useState(current.barId);
-  const [verified, setVerified] = useState(current.verified);
+  const [name, setName] = useState("");
+  const [expertise, setExpertise] = useState("");
+  const [barId, setBarId] = useState("");
+  const [verified, setVerified] = useState(false);
   const [status, setStatus] = useState("");
 
-  function save() {
-    saveProfile({ name, expertise, barId, verified });
+  useEffect(() => {
+    portalApi.advocate.profile().then((current) => {
+      if (!current) return;
+      setName(current.name || "");
+      setExpertise(current.expertise || "");
+      setBarId(current.barId || "");
+      setVerified(Boolean(current.verified));
+    });
+  }, []);
+
+  async function save() {
+    await portalApi.advocate.saveProfile({ name, expertise, barId, verified });
     setStatus("Profile saved");
     setTimeout(() => setStatus(""), 2000);
   }

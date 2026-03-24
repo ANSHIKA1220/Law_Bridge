@@ -1,28 +1,46 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-const DATA = [
-  { id: 1, title: "ABC v. XYZ", court: "Supreme Court", year: 2021, act: "Contract Act", summary: "Termination clause interpretation." },
-  { id: 2, title: "State v. Rao", court: "High Court", year: 2019, act: "CrPC", summary: "Procedure rights." },
-  { id: 3, title: "Mehta v. Retailer", court: "District Court", year: 2023, act: "Consumer Act", summary: "Refund dispute." },
-  { id: 4, title: "Tenant v. Landlord", court: "High Court", year: 2020, act: "Transfer of Property", summary: "Lease termination." },
-];
+import { apiRequest } from "../../api/client.js";
 
 function CaseExplorer() {
   const [q, setQ] = useState("");
   const [court, setCourt] = useState("");
   const [year, setYear] = useState("");
   const [act, setAct] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const results = useMemo(() => {
-    return DATA.filter(
-      (r) =>
-        (!q ||
-          r.title.toLowerCase().includes(q.toLowerCase()) ||
-          r.summary.toLowerCase().includes(q.toLowerCase())) &&
-        (!court || r.court === court) &&
-        (!year || r.year === Number(year)) &&
-        (!act || r.act === act)
-    );
+  useEffect(() => {
+    const queryParts = [];
+    if (q.trim()) queryParts.push(q.trim());
+    if (court) queryParts.push(court);
+    if (year) queryParts.push(`year:${year}`);
+    if (act) queryParts.push(act);
+
+    const query = queryParts.join(" ").trim();
+    if (!query) {
+      setResults([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
+    const t = setTimeout(async () => {
+      try {
+        const res = await apiRequest(`/cases?query=${encodeURIComponent(query)}`);
+        if (!cancelled) setResults(res || []);
+      } catch {
+        if (!cancelled) setResults([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, [q, court, year, act]);
 
   return (
@@ -70,9 +88,12 @@ function CaseExplorer() {
         </select>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {results.map((r) => (
+        {loading && (
+          <div style={{ color: "var(--text-muted)", padding: 16, textAlign: "center" }}>Searching cases...</div>
+        )}
+        {!loading && results.map((r) => (
           <div
-            key={r.id}
+            key={r.title}
             style={{
               padding: 16,
               borderRadius: 14,
@@ -104,34 +125,16 @@ function CaseExplorer() {
                     background: "var(--cream-dark)",
                   }}
                 >
-                  {r.court}
-                </span>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    borderRadius: 6,
-                    background: "var(--cream-dark)",
-                  }}
-                >
-                  {r.year}
-                </span>
-                <span
-                  style={{
-                    padding: "3px 8px",
-                    borderRadius: 6,
-                    background: "var(--cream-dark)",
-                  }}
-                >
-                  {r.act}
+                  Relevance: {(Number(r.relevance_score) || 0).toFixed(2)}
                 </span>
               </div>
             </div>
             <p style={{ margin: "8px 0 0", fontSize: 14, color: "var(--text-muted)" }}>{r.summary}</p>
           </div>
         ))}
-        {results.length === 0 && (
+        {!loading && results.length === 0 && (
           <div style={{ color: "var(--text-muted)", padding: 16, textAlign: "center" }}>
-            No matching cases found
+            Enter a query to search case law
           </div>
         )}
       </div>
