@@ -1,5 +1,6 @@
-import { listTopics } from "./datastore.js";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { portalApi } from "../../api/portal.js";
 
 function FeatureCard({ title, to, desc }) {
   return (
@@ -34,7 +35,10 @@ function FeatureCard({ title, to, desc }) {
 }
 
 function StudentHome() {
-  const topics = listTopics();
+  const [topics, setTopics] = useState([]);
+  useEffect(() => {
+    portalApi.student.topics().then((rows) => setTopics((rows || []).map((r) => r.title)));
+  }, []);
   return (
     <div>
       <section

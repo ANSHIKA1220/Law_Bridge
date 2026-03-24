@@ -6,10 +6,23 @@ function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Citizen");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  function handleContinue(e) {
+  async function handleContinue(e) {
     e.preventDefault();
-    const user = signIn({ email, role });
+    setError(null);
+    setLoading(true);
+    let user;
+    try {
+      user = await signIn({ email, password, role });
+    } catch (err) {
+      setError(err?.message || "Login failed");
+      setLoading(false);
+      return;
+    }
+    setLoading(false);
     if (user.role === "Citizen") navigate("/dashboard/citizen");
     else if (user.role === "Advocate") navigate("/dashboard/advocate");
     else if (user.role === "Student") navigate("/dashboard/student");
@@ -71,6 +84,8 @@ function Login() {
             <input
               type="password"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               style={{ marginTop: 6 }}
             />
           </div>
@@ -96,10 +111,15 @@ function Login() {
               marginTop: 4,
               justifyContent: "center",
             }}
+            disabled={loading}
           >
-            Continue
+            {loading ? "Signing in..." : "Continue"}
           </button>
         </form>
+
+        {error && (
+          <div style={{ marginTop: 16, color: "var(--error)", fontSize: 13, textAlign: "center" }}>{error}</div>
+        )}
 
         <p
           style={{

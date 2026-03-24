@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { seedIfEmpty, getProfile } from "./datastore.js";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function SLink({ to, label }) {
   return (
@@ -25,8 +26,13 @@ function SLink({ to, label }) {
 }
 
 function AdvocateLayout() {
-  seedIfEmpty();
-  const profile = getProfile();
+  const [profile, setProfile] = useState({ name: "Advocate", expertise: "General Practice" });
+
+  useEffect(() => {
+    portalApi.advocate.profile().then((p) => {
+      if (p) setProfile(p);
+    });
+  }, []);
   return (
     <div
       style={{

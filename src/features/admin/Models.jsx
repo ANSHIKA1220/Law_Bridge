@@ -1,12 +1,16 @@
-import { listModels, setModel } from "./datastore.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Models() {
-  const [items, setItems] = useState(listModels());
+  const [items, setItems] = useState([]);
 
-  function toggle(id, enabled) {
-    setModel(id, enabled);
-    setItems(listModels());
+  useEffect(() => {
+    portalApi.admin.models().then((rows) => setItems(rows || []));
+  }, []);
+
+  async function toggle(id, enabled) {
+    await portalApi.admin.updateModel(id, enabled);
+    setItems(await portalApi.admin.models());
   }
 
   return (

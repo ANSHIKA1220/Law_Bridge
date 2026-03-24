@@ -1,12 +1,16 @@
-import { listRequests, updateRequest } from "./datastore.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Requests() {
-  const [items, setItems] = useState(listRequests());
+  const [items, setItems] = useState([]);
 
-  function setStatus(id, status) {
-    updateRequest(id, { status });
-    setItems(listRequests());
+  useEffect(() => {
+    portalApi.advocate.requests().then((rows) => setItems(rows || []));
+  }, []);
+
+  async function setStatus(id, status) {
+    await portalApi.advocate.updateRequest(id, status);
+    setItems(await portalApi.advocate.requests());
   }
 
   return (

@@ -1,14 +1,18 @@
-import { listTemplates, saveTemplate } from "./datastore.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Templates() {
-  const [items, setItems] = useState(listTemplates());
+  const [items, setItems] = useState([]);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
 
-  function save() {
+  useEffect(() => {
+    portalApi.advocate.templates().then((rows) => setItems(rows || []));
+  }, []);
+
+  async function save() {
     if (!title.trim() || !body.trim()) return;
-    const tpl = saveTemplate({ title, body });
+    const tpl = await portalApi.advocate.addTemplate({ title, body });
     setItems([tpl, ...items]);
     setTitle("");
     setBody("");

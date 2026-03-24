@@ -1,11 +1,18 @@
 import { useState } from "react";
-import { listQuizzes } from "./datastore.js";
+import { useEffect } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function PracticeQuiz() {
-  const questions = listQuizzes();
+  const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null);
   const [result, setResult] = useState(null);
+  useEffect(() => {
+    portalApi.student.quizzes().then((rows) => setQuestions(rows || []));
+  }, []);
+  if (!questions.length) {
+    return <div style={{ color: "var(--text-muted)" }}>Loading quiz...</div>;
+  }
   const q = questions[idx];
 
   function submit() {

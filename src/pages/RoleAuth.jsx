@@ -38,6 +38,8 @@ function RoleAuth() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [extra, setExtra] = useState({});
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const roleFields = useMemo(() => FIELDS[role] || [], [role]);
   const isAdmin = role === "Admin";
@@ -54,18 +56,34 @@ function RoleAuth() {
     else navigate("/dashboard/admin");
   }
 
-  function doLogin(e) {
+  async function doLogin(e) {
     e.preventDefault();
-    const user = signIn({ email, role, password });
-    continueToDashboard(user.role);
+    setError(null);
+    setLoading(true);
+    try {
+      const user = await signIn({ email, role, password });
+      continueToDashboard(user.role);
+    } catch (err) {
+      setError(err?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function doRegister(e) {
+  async function doRegister(e) {
     e.preventDefault();
     if (!canRegister) return;
     if (password !== confirm) return;
-    const user = signUp({ email, role, password, ...extra });
-    continueToDashboard(user.role);
+    setError(null);
+    setLoading(true);
+    try {
+      const user = await signUp({ email, role, password, ...extra });
+      continueToDashboard(user.role);
+    } catch (err) {
+      setError(err?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -127,7 +145,7 @@ function RoleAuth() {
           <form onSubmit={doLogin} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <Field label="Email" type="email" value={email} onChange={setEmail} />
             <Field label="Password" type="password" value={password} onChange={setPassword} />
-            <button type="submit" className="btn" style={{ justifyContent: "center" }}>
+            <button type="submit" className="btn" style={{ justifyContent: "center" }} disabled={loading}>
               Continue
             </button>
           </form>
@@ -145,10 +163,14 @@ function RoleAuth() {
                 onChange={(v) => onExtraChange(f.key, v)}
               />
             ))}
-            <button type="submit" className="btn" style={{ justifyContent: "center" }}>
+            <button type="submit" className="btn" style={{ justifyContent: "center" }} disabled={loading}>
               Create Account
             </button>
           </form>
+        )}
+
+        {error && (
+          <div style={{ marginTop: 14, color: "var(--error)", fontSize: 13, textAlign: "center" }}>{error}</div>
         )}
 
         <div style={{ marginTop: 14, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>

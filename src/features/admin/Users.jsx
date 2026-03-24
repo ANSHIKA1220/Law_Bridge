@@ -1,17 +1,21 @@
-import { listUsers, verifyAdvocate, banUser } from "./datastore.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function Users() {
-  const [items, setItems] = useState(listUsers());
+  const [items, setItems] = useState([]);
 
-  function setVerify(id, v) {
-    verifyAdvocate(id, v);
-    setItems(listUsers());
+  useEffect(() => {
+    portalApi.admin.users().then((rows) => setItems(rows || []));
+  }, []);
+
+  async function setVerify(id, v) {
+    await portalApi.admin.verifyUser(id, v);
+    setItems(await portalApi.admin.users());
   }
 
-  function setBan(id, v) {
-    banUser(id, v);
-    setItems(listUsers());
+  async function setBan(id, v) {
+    await portalApi.admin.banUser(id, v);
+    setItems(await portalApi.admin.users());
   }
 
   return (

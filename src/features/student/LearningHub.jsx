@@ -1,7 +1,11 @@
-import { listTopics } from "./datastore.js";
+import { useEffect, useState } from "react";
+import { portalApi } from "../../api/portal.js";
 
 function LearningHub() {
-  const topics = listTopics();
+  const [topics, setTopics] = useState([]);
+  useEffect(() => {
+    portalApi.student.topics().then((rows) => setTopics((rows || []).map((r) => r.title)));
+  }, []);
   return (
     <div
       style={{
